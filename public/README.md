@@ -1,0 +1,1 @@
+# Assets publicos do app

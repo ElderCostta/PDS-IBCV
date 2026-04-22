@@ -1,0 +1,6 @@
+{
+  "name": "PDS - IBCV",
+  "description": "Controle remoto de apresentações via Wi-Fi com ponteiro laser virtual e cronômetro.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
