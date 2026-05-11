@@ -56,12 +56,13 @@ export default function PresenterView({ presentationId }: PresenterProps) {
   const [laserPos, setLaserPos] = useState<LaserUpdate | null>(null);
   const [showConfig, setShowConfig] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Usar configurações que priorizam baixa latência
-    const s = io(window.location.origin, {
+    // Usar a conexão padrão do socket.io que resolve o host automaticamente
+    const s = io({
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 10,
@@ -71,11 +72,17 @@ export default function PresenterView({ presentationId }: PresenterProps) {
 
     s.on("connect", () => {
       console.log("Presenter connected to socket server");
+      setIsConnected(true);
       s.emit("join-presentation", presentationId);
+    });
+
+    s.on("disconnect", () => {
+      setIsConnected(false);
     });
 
     s.on("connect_error", (err) => {
       console.error("Connection error:", err.message);
+      setIsConnected(false);
     });
 
     s.on("slide-action", (data: SlideEvent) => {
@@ -238,8 +245,8 @@ export default function PresenterView({ presentationId }: PresenterProps) {
               PDS-IBCV
             </motion.h1>
             <div className="flex items-center justify-center gap-2 mt-1 text-[10px] font-mono text-white/30 uppercase tracking-[0.3em]">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-              LIVE SESSION: {presentationId}
+              <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'} shadow-[0_0_8px_rgba(16,185,129,0.5)]`} />
+              {isConnected ? `SESSÃO ATIVA: ${presentationId}` : 'DESCONECTADO'}
             </div>
           </div>
         </motion.div>

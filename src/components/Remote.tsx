@@ -16,8 +16,8 @@ export default function RemoteView({ presentationId }: RemoteProps) {
   const laserControls = useAnimation();
 
   useEffect(() => {
-    const s = io(window.location.origin, {
-      transports: ['websocket', 'polling'], // Prioritize websocket for low latency
+    const s = io({
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 20,
       timeout: 10000
