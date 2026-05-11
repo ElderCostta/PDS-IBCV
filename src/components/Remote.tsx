@@ -16,11 +16,11 @@ export default function RemoteView({ presentationId }: RemoteProps) {
   const laserControls = useAnimation();
 
   useEffect(() => {
-    // Usar apenas websockets para evitar problemas de proxy e polling
-    const s = io({
-      transports: ['websocket'],
+    const s = io(window.location.origin, {
+      transports: ['websocket', 'polling'], // Prioritize websocket for low latency
       reconnection: true,
-      reconnectionAttempts: 10
+      reconnectionAttempts: 20,
+      timeout: 10000
     });
     setSocket(s);
 
@@ -58,8 +58,15 @@ export default function RemoteView({ presentationId }: RemoteProps) {
     } as SlideEvent);
   };
 
+  const lastLaserEmit = useRef<number>(0);
+  const LASER_THROTTLE_MS = 25; // ~40 FPS for smooth laser
+
   const handlePointerMove = (e: React.TouchEvent | React.MouseEvent) => {
     if (!socket || !padRef.current) return;
+
+    const now = Date.now();
+    if (now - lastLaserEmit.current < LASER_THROTTLE_MS) return;
+    lastLaserEmit.current = now;
 
     const rect = padRef.current.getBoundingClientRect();
     let clientX, clientY;

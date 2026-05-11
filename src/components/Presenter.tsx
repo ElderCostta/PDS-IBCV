@@ -60,11 +60,12 @@ export default function PresenterView({ presentationId }: PresenterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Configura o socket para usar apenas websockets, o que é mais estável em proxies
-    const s = io({
-      transports: ['websocket'],
+    // Usar configurações que priorizam baixa latência
+    const s = io(window.location.origin, {
+      transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 10,
+      timeout: 10000
     });
     setSocket(s);
 
@@ -187,15 +188,15 @@ export default function PresenterView({ presentationId }: PresenterProps) {
       {/* Laser Pointer */}
       {laserPos?.active && containerRef.current && (
         <div
-          className="absolute w-8 h-8 pointer-events-none z-50 transition-all duration-75"
+          className="absolute w-8 h-8 pointer-events-none z-50 will-change-transform"
           style={{
-            left: `${laserPos.x * 100}%`,
-            top: `${laserPos.y * 100}%`,
-            transform: "translate(-50%, -50%)"
+            left: 0,
+            top: 0,
+            transform: `translate3d(${laserPos.x * 100}vw, ${laserPos.y * 100}vh, 0) translate(-50%, -50%)`,
           }}
         >
-          <div className="w-full h-full rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-pulse" />
-          <div className="absolute inset-0 rounded-full bg-red-400 scale-150 opacity-20 blur-sm" />
+          <div className="w-full h-full rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.9)] scale-110" />
+          <div className="absolute inset-0 rounded-full bg-red-400 scale-150 opacity-30 blur-[2px]" />
         </div>
       )}
 
