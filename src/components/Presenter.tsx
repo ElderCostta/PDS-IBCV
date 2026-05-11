@@ -45,10 +45,22 @@ export default function PresenterView({ presentationId }: PresenterProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const s = io(window.location.origin);
+    // Configura o socket para usar apenas websockets, o que é mais estável em proxies
+    const s = io({
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5
+    });
     setSocket(s);
 
-    s.emit("join-presentation", presentationId);
+    s.on("connect", () => {
+      console.log("Presenter connected to socket server");
+      s.emit("join-presentation", presentationId);
+    });
+
+    s.on("connect_error", (err) => {
+      console.error("Connection error:", err.message);
+    });
 
     s.on("slide-action", (data: SlideEvent) => {
       if (data.action === "next") {

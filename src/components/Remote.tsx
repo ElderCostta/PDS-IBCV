@@ -16,12 +16,23 @@ export default function RemoteView({ presentationId }: RemoteProps) {
   const laserControls = useAnimation();
 
   useEffect(() => {
-    const s = io(window.location.origin);
+    // Usar apenas websockets para evitar problemas de proxy e polling
+    const s = io({
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 10
+    });
     setSocket(s);
 
     s.on("connect", () => {
+      console.log("Remote connected to socket server");
       setIsConnected(true);
       s.emit("join-presentation", presentationId);
+    });
+
+    s.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
+      setIsConnected(false);
     });
 
     s.on("disconnect", () => {
